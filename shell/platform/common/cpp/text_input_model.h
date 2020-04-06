@@ -5,11 +5,12 @@
 #ifndef FLUTTER_SHELL_PLATFORM_CPP_TEXT_INPUT_MODEL_H_
 #define FLUTTER_SHELL_PLATFORM_CPP_TEXT_INPUT_MODEL_H_
 
+#include <memory>
 #include <string>
 
 #include "rapidjson/document.h"
 
-namespace shell {
+namespace flutter {
 // Handles underlying text input state, using a simple ASCII model.
 //
 // Ignores special states like "insert mode" for now.
@@ -31,7 +32,7 @@ class TextInputModel {
   // Either appends after the cursor (when selection base and extent are the
   // same), or deletes the selected characters, replacing the text with the
   // character specified.
-  void AddCharacter(char c);
+  void AddCharacter(char32_t c);
 
   // Deletes either the selection, or one character ahead of the cursor.
   //
@@ -88,14 +89,14 @@ class TextInputModel {
  private:
   void DeleteSelected();
 
-  std::string text_;
+  std::u32string text_;
   int client_id_;
   std::string input_type_;
   std::string input_action_;
-  std::string::iterator selection_base_;
-  std::string::iterator selection_extent_;
+  std::u32string::iterator selection_base_;
+  std::u32string::iterator selection_extent_;
 };
 
-}  // namespace shell
+}  // namespace flutter
 
 #endif  // FLUTTER_SHELL_PLATFORM_CPP_TEXT_INPUT_MODEL_H_

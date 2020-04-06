@@ -4,7 +4,7 @@
 
 #include "flutter/shell/common/thread_host.h"
 
-namespace shell {
+namespace flutter {
 
 ThreadHost::ThreadHost() = default;
 
@@ -20,7 +20,7 @@ ThreadHost::ThreadHost(std::string name_prefix, uint64_t mask) {
   }
 
   if (mask & ThreadHost::Type::GPU) {
-    gpu_thread = std::make_unique<fml::Thread>(name_prefix + ".gpu");
+    raster_thread = std::make_unique<fml::Thread>(name_prefix + ".raster");
   }
 
   if (mask & ThreadHost::Type::IO) {
@@ -33,8 +33,8 @@ ThreadHost::~ThreadHost() = default;
 void ThreadHost::Reset() {
   platform_thread.reset();
   ui_thread.reset();
-  gpu_thread.reset();
+  raster_thread.reset();
   io_thread.reset();
 }
 
-}  // namespace shell
+}  // namespace flutter

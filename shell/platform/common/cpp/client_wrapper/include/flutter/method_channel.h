@@ -32,8 +32,6 @@ class MethodChannel {
  public:
   // Creates an instance that sends and receives method calls on the channel
   // named |name|, encoded with |codec| and dispatched via |messenger|.
-  //
-  // TODO: Make codec optional once the standard codec is supported (Issue #67).
   MethodChannel(BinaryMessenger* messenger,
                 const std::string& name,
                 const MethodCodec<T>* codec)
@@ -50,15 +48,30 @@ class MethodChannel {
     MethodCall<T> method_call(method, std::move(arguments));
     std::unique_ptr<std::vector<uint8_t>> message =
         codec_->EncodeMethodCall(method_call);
-    messenger_->Send(name_, message->data(), message->size());
+    messenger_->Send(name_, message->data(), message->size(), nullptr);
   }
 
-  // TODO: Add support for a version of InvokeMethod expecting a reply once
-  // https://github.com/flutter/flutter/issues/18852 is fixed.
+  // Sends a message to the Flutter engine on this channel expecting a reply.
+  void InvokeMethod(const std::string& method,
+                    std::unique_ptr<T> arguments,
+                    flutter::BinaryReply reply) {
+    MethodCall<T> method_call(method, std::move(arguments));
+    std::unique_ptr<std::vector<uint8_t>> message =
+        codec_->EncodeMethodCall(method_call);
+    messenger_->Send(name_, message->data(), message->size(), reply);
+  }
 
   // Registers a handler that should be called any time a method call is
-  // received on this channel.
+  // received on this channel. A null handler will remove any previous handler.
+  //
+  // Note that the MethodChannel does not own the handler, and will not
+  // unregister it on destruction, so the caller is responsible for
+  // unregistering explicitly if it should no longer be called.
   void SetMethodCallHandler(MethodCallHandler<T> handler) const {
+    if (!handler) {
+      messenger_->SetMessageHandler(name_, nullptr);
+      return;
+    }
     const auto* codec = codec_;
     std::string channel_name = name_;
     BinaryMessageHandler binary_handler = [handler, codec, channel_name](

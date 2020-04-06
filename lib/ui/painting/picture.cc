@@ -15,7 +15,7 @@
 #include "third_party/tonic/dart_persistent_value.h"
 #include "third_party/tonic/logging/dart_invoke.h"
 
-namespace blink {
+namespace flutter {
 
 IMPLEMENT_WRAPPERTYPEINFO(ui, Picture);
 
@@ -26,11 +26,16 @@ IMPLEMENT_WRAPPERTYPEINFO(ui, Picture);
 
 DART_BIND_ALL(Picture, FOR_EACH_BINDING)
 
-fml::RefPtr<Picture> Picture::Create(flow::SkiaGPUObject<SkPicture> picture) {
-  return fml::MakeRefCounted<Picture>(std::move(picture));
+fml::RefPtr<Picture> Picture::Create(
+    Dart_Handle dart_handle,
+    flutter::SkiaGPUObject<SkPicture> picture) {
+  auto canvas_picture = fml::MakeRefCounted<Picture>(std::move(picture));
+
+  canvas_picture->AssociateWithDartWrapper(dart_handle);
+  return canvas_picture;
 }
 
-Picture::Picture(flow::SkiaGPUObject<SkPicture> picture)
+Picture::Picture(flutter::SkiaGPUObject<SkPicture> picture)
     : picture_(std::move(picture)) {}
 
 Picture::~Picture() = default;
@@ -74,7 +79,7 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
       new tonic::DartPersistentValue(dart_state, raw_image_callback);
   auto unref_queue = dart_state->GetSkiaUnrefQueue();
   auto ui_task_runner = dart_state->GetTaskRunners().GetUITaskRunner();
-  auto gpu_task_runner = dart_state->GetTaskRunners().GetGPUTaskRunner();
+  auto raster_task_runner = dart_state->GetTaskRunners().GetRasterTaskRunner();
   auto snapshot_delegate = dart_state->GetSnapshotDelegate();
 
   // We can't create an image on this task runner because we don't have a
@@ -110,9 +115,9 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
     delete image_callback;
   });
 
-  // Kick things off on the GPU.
+  // Kick things off on the raster rask runner.
   fml::TaskRunner::RunNowOrPostTask(
-      gpu_task_runner,
+      raster_task_runner,
       [ui_task_runner, snapshot_delegate, picture, picture_bounds, ui_task] {
         sk_sp<SkImage> raster_image =
             snapshot_delegate->MakeRasterSnapshot(picture, picture_bounds);
@@ -125,4 +130,4 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
   return Dart_Null();
 }
 
-}  // namespace blink
+}  // namespace flutter

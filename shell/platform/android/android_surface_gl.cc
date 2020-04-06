@@ -9,7 +9,7 @@
 #include "flutter/fml/logging.h"
 #include "flutter/fml/memory/ref_ptr.h"
 
-namespace shell {
+namespace flutter {
 
 static fml::RefPtr<AndroidContextGL> CreateResourceLoadingContext() {
   auto environment = fml::MakeRefCounted<AndroidEnvironmentGL>();
@@ -56,7 +56,7 @@ bool AndroidSurfaceGL::IsValid() const {
 }
 
 std::unique_ptr<Surface> AndroidSurfaceGL::CreateGPUSurface() {
-  auto surface = std::make_unique<GPUSurfaceGL>(this);
+  auto surface = std::make_unique<GPUSurfaceGL>(this, true);
   return surface->IsValid() ? std::move(surface) : nullptr;
 }
 
@@ -125,4 +125,9 @@ intptr_t AndroidSurfaceGL::GLContextFBO() const {
   return 0;
 }
 
-}  // namespace shell
+// |GPUSurfaceGLDelegate|
+ExternalViewEmbedder* AndroidSurfaceGL::GetExternalViewEmbedder() {
+  return nullptr;
+}
+
+}  // namespace flutter

@@ -6,24 +6,22 @@
 
 #include "third_party/skia/include/gpu/gl/GrGLAssembleInterface.h"
 
-namespace shell {
+namespace flutter {
+
+GPUSurfaceGLDelegate::~GPUSurfaceGLDelegate() = default;
 
 bool GPUSurfaceGLDelegate::GLContextFBOResetAfterPresent() const {
   return false;
 }
 
-bool GPUSurfaceGLDelegate::UseOffscreenSurface() const {
-  return false;
+bool GPUSurfaceGLDelegate::SurfaceSupportsReadback() const {
+  return true;
 }
 
 SkMatrix GPUSurfaceGLDelegate::GLContextSurfaceTransformation() const {
   SkMatrix matrix;
   matrix.setIdentity();
   return matrix;
-}
-
-flow::ExternalViewEmbedder* GPUSurfaceGLDelegate::GetExternalViewEmbedder() {
-  return nullptr;
 }
 
 GPUSurfaceGLDelegate::GLProcResolver GPUSurfaceGLDelegate::GetGLProcResolver()
@@ -66,9 +64,7 @@ static sk_sp<const GrGLInterface> CreateGLInterface(
     GPUSurfaceGLDelegate::GLProcResolver resolver;
   };
 
-  ProcResolverContext context = {
-      proc_resolver
-  };
+  ProcResolverContext context = {proc_resolver};
 
   GrGLGetProc gl_get_proc = [](void* context,
                                const char gl_proc_name[]) -> GrGLFuncPtr {
@@ -101,4 +97,8 @@ GPUSurfaceGLDelegate::GetDefaultPlatformGLInterface() {
   return CreateGLInterface(nullptr);
 }
 
-}  // namespace shell
+ExternalViewEmbedder* GPUSurfaceGLDelegate::GetExternalViewEmbedder() {
+  return nullptr;
+}
+
+}  // namespace flutter

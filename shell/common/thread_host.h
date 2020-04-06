@@ -10,8 +10,9 @@
 #include "flutter/fml/macros.h"
 #include "flutter/fml/thread.h"
 
-namespace shell {
+namespace flutter {
 
+/// The collection of all the threads used by the engine.
 struct ThreadHost {
   enum Type {
     Platform = 1 << 0,
@@ -22,7 +23,7 @@ struct ThreadHost {
 
   std::unique_ptr<fml::Thread> platform_thread;
   std::unique_ptr<fml::Thread> ui_thread;
-  std::unique_ptr<fml::Thread> gpu_thread;
+  std::unique_ptr<fml::Thread> raster_thread;
   std::unique_ptr<fml::Thread> io_thread;
 
   ThreadHost();
@@ -38,6 +39,6 @@ struct ThreadHost {
   void Reset();
 };
 
-}  // namespace shell
+}  // namespace flutter
 
 #endif  // FLUTTER_SHELL_COMMON_THREAD_HOST_H_
